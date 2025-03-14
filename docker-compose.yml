@@ -1,0 +1,12 @@
+services:
+    INSERT_SERVICE_NAME:
+        build:
+            context: .
+            dockerfile: ./INSERT_DOCKERFILE_PATH
+        image: INSERT_IMAGE_NAME:INSERT_IMAGE_TAG
+        restart: unless-stopped
+        container_name: INSERT_CONTANER_NAME
+        ports:
+            - 'INSERT_SERVER_PORT:INSERT_SERVER_PORT'
+        extra_hosts:
+            - host.docker.internal:host-gateway
