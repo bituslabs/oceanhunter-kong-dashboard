@@ -18,7 +18,7 @@ phases:
             - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
             # Setting base variables
-            - SERVICE_NAME="agfish-kong-dashboard"
+            - SERVICE_NAME="oceanhunter-kong-dashboard"
             - TASK_DEFINITION_REVISION_NUMBER="1"
             - ENVIRONMENT="staging"
 
