@@ -19,6 +19,7 @@ phases:
 
             # Setting base variables
             - SERVICE_NAME="agfish-kong-dashboard"
+            - TASK_DEFINITION_REVISION_NUMBER="1"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
@@ -30,7 +31,6 @@ phases:
             - DOCKERFILE_PATH="Dockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
             - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/staging/appspec.yml"
-            - CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/staging/scripts/application_start_hook.sh"
 
             # Getting commit number for docker image
             - echo "Getting Github Commit"
@@ -46,6 +46,9 @@ phases:
 
             # Inserting Endpoints
             - sed -i "s|INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_GATEWAY_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+
+            # Get Current Task Definition
+            - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
 
             # Replacing appspec placeholders
             - sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
