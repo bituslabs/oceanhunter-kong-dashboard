@@ -43,6 +43,7 @@ export default defineConfig({
     proxy: {
       '/kconfig.js': process.env.KONG_GUI_URL || 'http://127.0.0.1:8002',
     },
+    allowedHosts: ['*.oceanhunter.net'],
     port: 8080,
   },
   preview: {
