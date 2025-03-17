@@ -2,6 +2,7 @@ version: 0.2
 
 env:
     secrets-manager:
+        KONG_API_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_API_ENDPOINT"
         KONG_API_INTERNAL_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_API_INTERNAL_ENDPOINT"
 
 phases:
@@ -19,7 +20,7 @@ phases:
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-dashboard"
-            - TASK_DEFINITION_REVISION_NUMBER="17"
+            - TASK_DEFINITION_REVISION_NUMBER="22"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
@@ -45,7 +46,8 @@ phases:
             - echo "Starting Build Phase . . ."
 
             # Inserting Endpoints
-            - sed -i "s|INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+            # - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+            - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_ENDPOINT|" $CONFIG_FILE_PATH
 
             # Get Current Task Definition
             - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
