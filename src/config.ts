@@ -34,19 +34,19 @@ export const config = {
   },
 
   get ADMIN_API_URL() {
-    // return 'INSERT_GATEWAY_INTERNAL_ENDPOINT'
-    const ADMIN_API_URL = getConfig<string | null>('ADMIN_API_URL', null)
-    if (ADMIN_API_URL) {
-      return /^(https?:)?\/\//.test(ADMIN_API_URL)
-        ? ADMIN_API_URL
-        : `${window.location.protocol}//${ADMIN_API_URL}`
-    }
+    return 'INSERT_GATEWAY_INTERNAL_ENDPOINT'
+    //   const ADMIN_API_URL = getConfig<string | null>('ADMIN_API_URL', null)
+    //   if (ADMIN_API_URL) {
+    //     return /^(https?:)?\/\//.test(ADMIN_API_URL)
+    //       ? ADMIN_API_URL
+    //       : `${window.location.protocol}//${ADMIN_API_URL}`
+    //   }
 
-    const port = window.location.protocol.toLowerCase() === 'https:'
-      ? config.ADMIN_API_SSL_PORT
-      : config.ADMIN_API_PORT
+    //   const port = window.location.protocol.toLowerCase() === 'https:'
+    //     ? config.ADMIN_API_SSL_PORT
+    //     : config.ADMIN_API_PORT
 
-    return `${window.location.protocol}//${window.location.hostname}:${port}`
+  //   return `${window.location.protocol}//${window.location.hostname}:${port}`
   },
 
   get ANONYMOUS_REPORTS() {
