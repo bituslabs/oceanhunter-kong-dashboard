@@ -19,7 +19,7 @@ phases:
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-dashboard"
-            - TASK_DEFINITION_REVISION_NUMBER="12"
+            - TASK_DEFINITION_REVISION_NUMBER="17"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
