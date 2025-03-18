@@ -29,7 +29,7 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
-            - ENV_FILE_PATH=".env"
+            - VITE_CONFIG_FILE_PATH="vite.config.ts"
 
             - DOCKERFILE_PATH="Dockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
@@ -49,7 +49,7 @@ phases:
 
             # Inserting Endpoints
             - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_ENDPOINT|" $CONFIG_FILE_PATH
-            - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $ENV_FILE_PATH
+            - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $VITE_CONFIG_FILE_PATH
 
             # Get Current Task Definition
             - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
