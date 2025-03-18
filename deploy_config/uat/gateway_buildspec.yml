@@ -95,3 +95,4 @@ phases:
 artifacts:
     files:
         - 'deploy_config/uat/*'
+        - appspec.yml
