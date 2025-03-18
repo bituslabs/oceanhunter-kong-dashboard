@@ -4,6 +4,7 @@ env:
     secrets-manager:
         KONG_API_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_API_ENDPOINT"
         KONG_API_INTERNAL_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_API_INTERNAL_ENDPOINT"
+        KONG_DASHBOARD_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_DASHBOARD_ENDPOINT"
 
 phases:
     install:
@@ -20,7 +21,7 @@ phases:
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-dashboard"
-            - TASK_DEFINITION_REVISION_NUMBER="22"
+            - TASK_DEFINITION_REVISION_NUMBER="29"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
@@ -28,6 +29,7 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
+            - ENV_FILE_PATH=".env"
 
             - DOCKERFILE_PATH="Dockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
@@ -46,8 +48,8 @@ phases:
             - echo "Starting Build Phase . . ."
 
             # Inserting Endpoints
-            # - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
             - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_ENDPOINT|" $CONFIG_FILE_PATH
+            - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $ENV_FILE_PATH
 
             # Get Current Task Definition
             - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
