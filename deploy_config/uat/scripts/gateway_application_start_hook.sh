@@ -29,6 +29,6 @@ docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-ga
     -e KONG_PG_HOST=INSERT_POSTGRE_KONG_GATEWAY_HOST \
     -e KONG_PG_USER=INSERT_POSTGRE_KONG_GATEWAY_USERNAME \
     -e KONG_PG_PASSWORD=INSERT_POSTGRE_KONG_GATEWAY_PASSWORD \
-    INSERT_IMAGE_NAME:INSERT_IMAGE_TAG \
-    kong migrations bootstrap
+    INSERT_IMAGE_NAME:INSERT_IMAGE_TAG
+    # kong migrations bootstrap
 docker network connect oceanhunter-network oceanhunter-kong-gateway
