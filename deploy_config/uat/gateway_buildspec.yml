@@ -1,5 +1,11 @@
 version: 0.2
 
+env:
+    secrets-manager:
+        POSTGRE_KONG_GATEWAY_HOST: "oceanhunter-staging-pipeline-secrets:POSTGRE_KONG_GATEWAY_HOST"
+        POSTGRE_KONG_GATEWAY_USERNAME: "oceanhunter-staging-pipeline-secrets:POSTGRE_KONG_GATEWAY_USERNAME"
+        POSTGRE_KONG_GATEWAY_PASSWORD: "oceanhunter-staging-pipeline-secrets:POSTGRE_KONG_GATEWAY_PASSWORD"
+
 phases:
     install:
         commands:
