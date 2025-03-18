@@ -5,6 +5,7 @@ env:
         POSTGRE_KONG_GATEWAY_HOST: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_HOST"
         POSTGRE_KONG_GATEWAY_USERNAME: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_USERNAME"
         POSTGRE_KONG_GATEWAY_PASSWORD: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_PASSWORD"
+        KONG_DASHBOARD_ENDPOINT: "oceanhunter-uat-pipeline-secrets:KONG_DASHBOARD_ENDPOINT"
 
 phases:
     install:
