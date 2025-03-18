@@ -2,9 +2,9 @@ version: 0.2
 
 env:
     secrets-manager:
-        POSTGRE_KONG_GATEWAY_HOST: "oceanhunter-staging-app-secrets:POSTGRE_KONG_GATEWAY_HOST"
-        POSTGRE_KONG_GATEWAY_USERNAME: "oceanhunter-staging-app-secrets:POSTGRE_KONG_GATEWAY_USERNAME"
-        POSTGRE_KONG_GATEWAY_PASSWORD: "oceanhunter-staging-app-secrets:POSTGRE_KONG_GATEWAY_PASSWORD"
+        POSTGRE_KONG_GATEWAY_HOST: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_HOST"
+        POSTGRE_KONG_GATEWAY_USERNAME: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_USERNAME"
+        POSTGRE_KONG_GATEWAY_PASSWORD: "oceanhunter-uat-app-secrets:POSTGRE_KONG_GATEWAY_PASSWORD"
 
 phases:
     install:

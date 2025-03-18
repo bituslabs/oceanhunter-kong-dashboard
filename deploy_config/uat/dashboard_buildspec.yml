@@ -2,8 +2,8 @@ version: 0.2
 
 env:
     secrets-manager:
-        KONG_API_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_API_ENDPOINT"
-        KONG_GATEWAY_INTERNAL_ENDPOINT: "oceanhunter-staging-pipeline-secrets:KONG_GATEWAY_INTERNAL_ENDPOINT"
+        KONG_API_ENDPOINT: "oceanhunter-uat-pipeline-secrets:KONG_API_ENDPOINT"
+        KONG_GATEWAY_INTERNAL_ENDPOINT: "oceanhunter-uat-pipeline-secrets:KONG_GATEWAY_INTERNAL_ENDPOINT"
 
 phases:
     install:
