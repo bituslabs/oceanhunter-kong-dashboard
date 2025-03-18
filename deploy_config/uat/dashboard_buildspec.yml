@@ -28,7 +28,7 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
-            - ENV_FILE_PATH=".env"
+            - VITE_CONFIG_FILE_PATH="vite.config.ts"
 
             - DOCKERFILE_PATH="Dockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
@@ -49,7 +49,7 @@ phases:
 
             # Inserting Endpoints
             - sed -i "s|INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_GATEWAY_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
-            - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $ENV_FILE_PATH
+            - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $VITE_CONFIG_FILE_PATH
 
             # Inserting codedeploy config settings
             - sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPSPEC_FILE_PATH
