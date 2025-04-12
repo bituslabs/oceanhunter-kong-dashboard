@@ -3,7 +3,6 @@ version: 0.2
 env:
     secrets-manager:
         KONG_API_ENDPOINT: "production-pipeline-secrets:KONG_API_ENDPOINT"
-        KONG_API_INTERNAL_ENDPOINT: "production-pipeline-secrets:KONG_API_INTERNAL_ENDPOINT"
         KONG_DASHBOARD_ENDPOINT: "production-pipeline-secrets:KONG_DASHBOARD_ENDPOINT"
 
 phases:
