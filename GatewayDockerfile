@@ -1,7 +1,7 @@
 FROM INSERT_BASE_IMAGE
 
-RUN mkdir -p /usr/local/share/lua/5.1/kong/plugins/auth_sign/
+RUN mkdir -p /usr/local/share/lua/5.1/kong/plugins/auth_sign
 
 ## Copy Plugin files
-COPY handler.lua /usr/local/share/lua/5.1/kong/plugins/auth_sign/handler.lua
-COPY schema.lua /usr/local/share/lua/5.1/kong/plugins/auth_sign/schema.lua
+COPY plugin/handler.lua /usr/local/share/lua/5.1/kong/plugins/auth_sign/handler.lua
+COPY plugin/schema.lua /usr/local/share/lua/5.1/kong/plugins/auth_sign/schema.lua

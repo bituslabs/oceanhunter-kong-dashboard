@@ -27,7 +27,7 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
-            - HANDLER_LUA_FILE_PATH="handler.lua"
+            - HANDLER_LUA_FILE_PATH="plugin/handler.lua"
 
             - DOCKERFILE_PATH="GatewayDockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
