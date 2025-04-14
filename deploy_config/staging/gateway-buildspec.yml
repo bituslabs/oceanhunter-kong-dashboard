@@ -60,36 +60,36 @@ phases:
             - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
-            # # Replacing docker placeholders
-            # - echo "Getting Ready to Build Docker Image"
-            # - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|" $DOCKERFILE_PATH
-            # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
+            # Replacing docker placeholders
+            - echo "Getting Ready to Build Docker Image"
+            - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|" $DOCKERFILE_PATH
+            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
 
-            # # Replacing docker compose placeholders
-            # ## Build Section
-            # - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
-            # ## Environment Section
-            # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+            # Replacing docker compose placeholders
+            ## Build Section
+            - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
+            ## Environment Section
+            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
             
-            # - cat $DOCKERCOMPOSE_FILE_PATH
+            - cat $DOCKERCOMPOSE_FILE_PATH
 
-            # # Building docker image
-            # - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
+            # Building docker image
+            - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
     post_build:
         commands:
             - echo "Starting PostBuild Phase . . ."
 
             # Pushing docker image to ECR
-            # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
-            # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
-            # - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
-            # - docker push $ECR_APP_REPO_URL:latest
+            - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
+            - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
+            - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
+            - docker push $ECR_APP_REPO_URL:latest
 
 artifacts:
   files:
