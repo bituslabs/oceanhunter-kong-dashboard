@@ -19,7 +19,7 @@ phases:
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-gateway"
-            - TASK_DEFINITION_REVISION_NUMBER="25"
+            - TASK_DEFINITION_REVISION_NUMBER="27"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
@@ -27,7 +27,7 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
-            - HANDLER_LUA_FILE_PATH="plugin/handler.lua"
+            - AUTH_SIGN_HANDLER_LUA_FILE_PATH="plugins/auth-sign/handler.lua"
 
             - DOCKERFILE_PATH="GatewayDockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
@@ -46,7 +46,7 @@ phases:
             - echo "Starting Build Phase . . ."
 
             # Replacing credentials
-            - sed -i "s|INSERT_SECRET_KEY|$KONG_GATEWAY_API_SECRET_KEY|" $HANDLER_LUA_FILE_PATH
+            - sed -i "s|INSERT_SECRET_KEY|$KONG_GATEWAY_API_SECRET_KEY|" $AUTH_SIGN_HANDLER_LUA_FILE_PATH
 
             # Get Current Task Definition
             - aws ecs describe-task-definition --task-definition $GATEWAY_TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
@@ -60,7 +60,7 @@ phases:
             - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
-            # Replacing docker placeholders
+            # # Replacing docker placeholders
             # - echo "Getting Ready to Build Docker Image"
             # - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|" $DOCKERFILE_PATH
             # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
