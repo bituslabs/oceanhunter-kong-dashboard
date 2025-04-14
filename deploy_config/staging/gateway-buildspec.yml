@@ -14,8 +14,8 @@ phases:
             - echo "Starting PreBuild Phase . . ."
 
             # Log into docker
-            # - echo "Logging into ECR"
-            # - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            - echo "Logging into ECR"
+            - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-gateway"
