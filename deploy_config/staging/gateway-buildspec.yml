@@ -75,6 +75,8 @@ phases:
             - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
             ## Environment Section
             - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+            
+            - cat $DOCKERCOMPOSE_FILE_PATH
 
             # Building docker image
             - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
