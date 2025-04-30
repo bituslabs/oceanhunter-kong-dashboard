@@ -1,0 +1,11 @@
+version: 0.0
+os: linux
+files:
+    - source: /
+      destination: INSERT_SOURCE_FILE_DESTINATION
+file_exists_behavior: OVERWRITE
+hooks:
+    ApplicationStart:
+        - location: deploy_config/dev/scripts/application_start_hook.sh
+          timeout: 300
+          runas: ubuntu

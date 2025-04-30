@@ -4,10 +4,24 @@ env:
     secrets-manager:
         KONG_GATEWAY_INTERNAL_ENDPOINT: "agfish-dev-pipeline-secrets:KONG_GATEWAY_INTERNAL_ENDPOINT"
 
+        SLACK_CHANNEL_ID: 'agfish-dev-pipeline-secrets:BACKOFFICE_NOTIFICATION_CHANNEL_ID'
+        SLACK_BOT_TOKEN: 'agfish-dev-pipeline-secrets:BACKOFFICE_SLACK_BOT_TOKEN'
+        GITHUB_TOKEN: 'agfish-dev-pipeline-secrets:GITHUB_TOKEN'
+
 phases:
     install:
         commands:
             - echo "Starting Install Phase . . ."
+
+            ## Using Trivy
+            - echo "Installing Trivy"
+            - sudo apt-get install wget gnupg
+            - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+            - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+            - sudo apt-get update
+            - sudo apt-get install trivy
+
+            - pip install slack_sdk requests
 
     pre_build:
         commands:
@@ -20,6 +34,9 @@ phases:
             # Setting base variables
             - SERVICE_NAME="agfish-kong-dashboard"
             - ENVIRONMENT="dev"
+            - REPO_NAME="oceanhunter-kong-dashboard"
+            - ORGANIZATION_NAME="bituslabs"
+            - CURRENT_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
             # Setting endpoint variables
             ## Configured in pipeline variables
@@ -29,6 +46,8 @@ phases:
 
             - DOCKERFILE_PATH="Dockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
+            - SCAN_REPORT_FILE_PATH="deploy_config/generate_scan_report.py"
+            - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
             - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/dev/appspec.yml"
             - CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/application_start_hook.sh"
 
@@ -36,6 +55,9 @@ phases:
             - echo "Getting Github Commit"
             - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
             - IMAGE_TAG=${COMMIT_HASH:=latest}
+
+            # Adding Status Check (Pending)
+            - STATUS=pending python "$GITHUB_STATUS_CHECK_FILE_PATH" 
 
             # Move appspec file over to root dir
             - mv $CODEDEPLOY_APPSPEC_FILE_PATH ./appspec.yml && CODEDEPLOY_APPSPEC_FILE_PATH="appspec.yml"
@@ -57,8 +79,9 @@ phases:
 
             # Replacing docker placeholders
             - echo "Getting Ready to Build Docker Image"
-            - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|" $DOCKERFILE_PATH
-            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
+            - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
+            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
+            - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
 
             # Replacing docker compose placeholders
             ## Build Section
@@ -77,6 +100,28 @@ phases:
     post_build:
         commands:
             - echo "Starting PostBuild Phase . . ."
+
+            # Scanning Image using Trivy
+            - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
+            - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
+            - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
+            - |
+                if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
+                    echo "Vulnerabilities found. Generating report..."
+                    
+                    trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
+                    python "$SCAN_REPORT_FILE_PATH"
+                    
+                    echo "Adding Git Status Check (Failed)"
+                    STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
+
+                    exit 1
+                else
+                    echo "No vulnerabilities found, skipping script."
+                fi
+
+            # Adding Git Status Check (Success)
+            - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
             # Pushing docker image to ECR
             - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
