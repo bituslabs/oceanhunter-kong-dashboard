@@ -11,8 +11,8 @@ env:
     DOCKER_HUB_PASSWORD: '${PIPELINE_SECRETS_MANAGER_NAME}:DOCKER_HUB_PASSWORD'
 
 phases:
-  on-failure: ABORT
   install:
+    on-failure: ABORT
     commands:
     - echo "Starting Install Phase . . ."
 
