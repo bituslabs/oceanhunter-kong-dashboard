@@ -91,7 +91,7 @@ phases:
     - echo "Starting Build Phase . . ."
 
     # Inserting Endpoints
-    - sed -i "INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_GATEWAY_INTERNAL_ENDPOINT|" $ENV_FILE_PATH
+    - sed -i "s|INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_GATEWAY_INTERNAL_ENDPOINT|" $ENV_FILE_PATH
 
     # Setting CodeDeploy and AppSpec config depending on the environment
     - |
