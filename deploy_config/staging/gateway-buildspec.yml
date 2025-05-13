@@ -1,5 +1,8 @@
 version: 0.2
 
+env:
+    secrets-manager:
+        KONG_GATEWAY_API_SECRET_KEY: "oceanhunter-staging-pipeline-secrets:KONG_GATEWAY_API_SECRET_KEY"
 
 phases:
     install:
@@ -11,12 +14,12 @@ phases:
             - echo "Starting PreBuild Phase . . ."
 
             # Log into docker
-            # - echo "Logging into ECR"
-            # - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            - echo "Logging into ECR"
+            - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
             # Setting base variables
             - SERVICE_NAME="oceanhunter-kong-gateway"
-            - TASK_DEFINITION_REVISION_NUMBER="11"
+            - TASK_DEFINITION_REVISION_NUMBER="27"
             - ENVIRONMENT="staging"
 
             # Setting endpoint variables
@@ -24,15 +27,16 @@ phases:
 
             # Setting path variables
             - CONFIG_FILE_PATH="src/config.ts"
+            - AUTH_SIGN_HANDLER_LUA_FILE_PATH="plugins/auth-sign/handler.lua"
 
-            - DOCKERFILE_PATH="Dockerfile"
+            - DOCKERFILE_PATH="GatewayDockerfile"
             - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
             - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/staging/appspec.yml"
 
             # Getting commit number for docker image
-            # - echo "Getting Github Commit"
-            # - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-            # - IMAGE_TAG=${COMMIT_HASH:=latest}
+            - echo "Getting Github Commit"
+            - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+            - IMAGE_TAG=${COMMIT_HASH:=latest}
 
             # Move appspec file over to root dir
             - mv $CODEDEPLOY_APPSPEC_FILE_PATH ./appspec.yml && CODEDEPLOY_APPSPEC_FILE_PATH="appspec.yml"
@@ -41,8 +45,8 @@ phases:
         commands:
             - echo "Starting Build Phase . . ."
 
-            # Inserting Endpoints
-            # - sed -i "s|INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+            # Replacing credentials
+            - sed -i "s|INSERT_SECRET_KEY|$KONG_GATEWAY_API_SECRET_KEY|" $AUTH_SIGN_HANDLER_LUA_FILE_PATH
 
             # Get Current Task Definition
             - aws ecs describe-task-definition --task-definition $GATEWAY_TASK_DEFINITION_ARN:$TASK_DEFINITION_REVISION_NUMBER | jq '.taskDefinition' > taskdef.json
@@ -51,39 +55,41 @@ phases:
             - sed -i "s|INSERT_TASK_DEFINITION_ARN|$GATEWAY_TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_REVISION_NUMBER/$TASK_DEFINITION_REVISION_NUMBER/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
-            - sed -i "s/INSERT_CONTAINER_PORT/$GATEWAY_SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
+            - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
             - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
             # Replacing docker placeholders
-            # - echo "Getting Ready to Build Docker Image"
-            # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|" $DOCKERFILE_PATH
-            # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
+            - echo "Getting Ready to Build Docker Image"
+            - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|" $DOCKERFILE_PATH
+            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERFILE_PATH
 
             # Replacing docker compose placeholders
             ## Build Section
-            # - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
-            # - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
-            # ## Environment Section
-            # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
+            - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
+            ## Environment Section
+            - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+            
+            - cat $DOCKERCOMPOSE_FILE_PATH
 
-            # # Building docker image
-            # - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
+            # Building docker image
+            - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
     post_build:
         commands:
             - echo "Starting PostBuild Phase . . ."
 
             # Pushing docker image to ECR
-            # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
-            # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
-            # - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
-            # - docker push $ECR_APP_REPO_URL:latest
+            - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
+            - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
+            - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
+            - docker push $ECR_APP_REPO_URL:latest
 
 artifacts:
   files:
