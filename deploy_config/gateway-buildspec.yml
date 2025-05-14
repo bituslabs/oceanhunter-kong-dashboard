@@ -65,6 +65,8 @@ phases:
 
     - DOCKERFILE_PATH="GatewayDockerfile"
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
+    - SCAN_REPORT_FILE_PATH="deploy_config/generate_scan_report.py"
+    - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
     - |
       if [ "$ENVIRONMENT" = "dev" ]; then
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
