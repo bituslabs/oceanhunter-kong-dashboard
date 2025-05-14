@@ -50,8 +50,8 @@ phases:
       elif [ "$ENVIRONMENT" = "uat" ]; then
           TASK_DEFINITION_REVISION_NUMBER="1"
       elif [ "$ENVIRONMENT" = "production" ]; then
-          # TASK_DEFINITION_REVISION_NUMBER="4"
-          TASK_DEFINITION_REVISION_NUMBER="7"
+          TASK_DEFINITION_REVISION_NUMBER="4"
+          # TASK_DEFINITION_REVISION_NUMBER="7"
       fi
     - REPO_NAME="oceanhunter-kong-dashboard"
     - ORGANIZATION_NAME="bituslabs"
@@ -117,57 +117,57 @@ phases:
           sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
       fi
     # Replacing docker placeholders
-    # - echo "Getting Ready to Build Docker Image"
-    # # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
-    # - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|g" $DOCKERFILE_PATH
-    # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
-    # - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
+    - echo "Getting Ready to Build Docker Image"
+    # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
 
-    # # Replacing docker compose placeholders
-    # ## Build Section
-    # - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
-    # ## Environment Section
-    # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+    # Replacing docker compose placeholders
+    ## Build Section
+    - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
+    ## Environment Section
+    - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
 
-    # # Building docker image
-    # - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
+    # Building docker image
+    - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
   post_build:
     commands:
     - echo "Starting PostBuild Phase . . ."
 
     # Scanning Image using Trivy
-    # - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
-    # - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
-    # - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
-    # - |
-    #   if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
-    #       echo "Vulnerabilities found. Generating report..."
+    - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
+    - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
+    - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
+    - |
+      if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
+          echo "Vulnerabilities found. Generating report..."
 
-    #       trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
-    #       python "$SCAN_REPORT_FILE_PATH"
+          trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
+          python "$SCAN_REPORT_FILE_PATH"
 
-    #       echo "Adding Git Status Check (Failed)"
-    #       STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
+          echo "Adding Git Status Check (Failed)"
+          STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
-    #       exit 1
-    #   else
-    #       echo "No vulnerabilities found, skipping script."
-    #   fi
+          exit 1
+      else
+          echo "No vulnerabilities found, skipping script."
+      fi
 
     # Adding Git Status Check (Success)
     - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
     # Pushing docker image to ECR
-    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
-    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
-    # - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
-    # - docker push $ECR_APP_REPO_URL:latest
+    - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
+    - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
+    - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
+    - docker push $ECR_APP_REPO_URL:latest
 
     # Setting artifact files
     - mkdir artifacts
