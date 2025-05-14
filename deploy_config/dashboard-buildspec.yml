@@ -171,15 +171,16 @@ phases:
     - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
     - docker push $ECR_APP_REPO_URL:latest
 
+    # Setting artifact files
+    - mkdir artifacts
+    - |
+      if [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "uat" ]; then
+        mv * artifacts; cp -r artifacts/* .
+      else
+        cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
+      fi
+
 artifacts:
-  base-directory: ${CODEBUILD_SRC_DIR}/
-  name: ec2_build_artifacts
+  base-directory: artifacts/
   files:
   - '**/*'
-  secondary-artifacts:
-    upstream-environments:
-      base-directory: ${CODEBUILD_SRC_DIR}/
-      name: ecs_build_artifacts
-      files:
-      - appspec.yml
-      - taskdef.json
