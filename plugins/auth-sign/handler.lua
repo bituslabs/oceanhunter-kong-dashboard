@@ -93,4 +93,3 @@ function AuthPluginHandler:access(conf)
 end
 
 return AuthPluginHandler
-
