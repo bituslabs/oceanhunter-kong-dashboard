@@ -52,7 +52,7 @@ phases:
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="1"
       elif [ "$ENVIRONMENT" = "production" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="7"
+        TASK_DEFINITION_REVISION_NUMBER="20"
       fi
     - REPO_NAME="oceanhunter-kong-dashboard"
     - ORGANIZATION_NAME="bituslabs"
