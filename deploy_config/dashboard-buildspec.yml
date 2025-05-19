@@ -2,7 +2,9 @@ version: 0.2
 
 env:
   secrets-manager:
-    KONG_GATEWAY_INTERNAL_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_GATEWAY_INTERNAL_ENDPOINT"
+    # KONG_GATEWAY_INTERNAL_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_GATEWAY_INTERNAL_ENDPOINT"
+    KONG_API_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_API_ENDPOINT"
+    KONG_DASHBOARD_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_DASHBOARD_ENDPOINT"
 
     SLACK_CHANNEL_ID: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_NOTIFICATION_CHANNEL_ID'
     SLACK_BOT_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_BOT_TOKEN'
@@ -46,11 +48,11 @@ phases:
     - SERVICE_NAME="oceanhunter-kong-dashboard"
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="29"
+        TASK_DEFINITION_REVISION_NUMBER="43"
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="1"
       elif [ "$ENVIRONMENT" = "production" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="1"
+        TASK_DEFINITION_REVISION_NUMBER="20"
       fi
     - REPO_NAME="oceanhunter-kong-dashboard"
     - ORGANIZATION_NAME="bituslabs"
@@ -61,6 +63,7 @@ phases:
 
     # Setting path variables
     - CONFIG_FILE_PATH="src/config.ts"
+    - VITE_CONFIG_FILE_PATH="vite.config.ts"
 
     - DOCKERFILE_PATH="Dockerfile"
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
@@ -91,7 +94,8 @@ phases:
     - echo "Starting Build Phase . . ."
 
     # Inserting Endpoints
-    - sed -i "INSERT_GATEWAY_INTERNAL_ENDPOINT|$KONG_GATEWAY_INTERNAL_ENDPOINT|" $ENV_FILE_PATH
+    - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_ENDPOINT|" $CONFIG_FILE_PATH
+    - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $VITE_CONFIG_FILE_PATH
 
     # Setting CodeDeploy and AppSpec config depending on the environment
     - |
@@ -169,15 +173,16 @@ phases:
     - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
     - docker push $ECR_APP_REPO_URL:latest
 
+    # Setting artifact files
+    - mkdir artifacts
+    - |
+      if [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "uat" ]; then
+        mv * artifacts; cp -r artifacts/* .
+      else
+        cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
+      fi
+
 artifacts:
-  base-directory: ${CODEBUILD_SRC_DIR}/
-  name: ec2_build_artifacts
+  base-directory: artifacts/
   files:
   - '**/*'
-  secondary-artifacts:
-    upstream-environments:
-      base-directory: ${CODEBUILD_SRC_DIR}/
-      name: ecs_build_artifacts
-      files:
-      - appspec.yml
-      - taskdef.json
