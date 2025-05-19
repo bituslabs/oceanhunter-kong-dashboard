@@ -1,0 +1,7 @@
+# nginx:latest
+FROM nginx@sha256:c15da6c91de8d2f436196f3a768483ad32c258ed4e1beb3d367a27ed67253e66
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY deploy_config/nginx/api-proxy.conf /etc/nginx/conf.d/api-proxy.conf
+
+CMD ["nginx", "-g", "daemon off;"]
