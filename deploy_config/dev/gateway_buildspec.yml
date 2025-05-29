@@ -1,0 +1,103 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    POSTGRE_KONG_GATEWAY_HOST: "agfish-dev-app-secrets:POSTGRE_KONG_GATEWAY_HOST"
+    POSTGRE_KONG_GATEWAY_USERNAME: "agfish-dev-app-secrets:POSTGRE_KONG_GATEWAY_USERNAME"
+    POSTGRE_KONG_GATEWAY_PASSWORD: "agfish-dev-app-secrets:POSTGRE_KONG_GATEWAY_PASSWORD"
+    KONG_DASHBOARD_ENDPOINT: "agfish-dev-pipeline-secrets:KONG_DASHBOARD_ENDPOINT"
+
+phases:
+  install:
+    commands:
+    - echo "Starting Install Phase . . ."
+
+  pre_build:
+    commands:
+    - echo "Starting PreBuild Phase . . ."
+
+    # Log into docker
+    # - echo "Logging into ECR"
+    # - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+    # Setting base variables
+    - SERVICE_NAME="common-kong-gateway"
+    - ENVIRONMENT="dev"
+
+    # Setting endpoint variables
+    ## Configured in pipeline variables
+
+    # Setting path variables
+    - CONFIG_FILE_PATH="src/config.ts"
+
+    - DOCKERFILE_PATH="Dockerfile"
+    - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
+    - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/dev/gateway_appspec.yml"
+    - CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/gateway_application_start_hook.sh"
+
+    # Getting commit number for docker image
+    # - echo "Getting Github Commit"
+    # - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+    # - IMAGE_TAG=${COMMIT_HASH:=latest}
+
+    # Move appspec file over to root dir
+    - mv $CODEDEPLOY_APPSPEC_FILE_PATH ./appspec.yml && CODEDEPLOY_APPSPEC_FILE_PATH="appspec.yml"
+
+  build:
+    commands:
+    - echo "Starting Build Phase . . ."
+
+    # Inserting codedeploy config settings
+    - sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPSPEC_FILE_PATH
+
+    - sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_AWS_REGION/$AWS_REGION/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s|INSERT_ECR_REPO_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    # Replacing docker placeholders
+    - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    - sed -i "s/INSERT_MAIN_HTTP_PORT/$GATEWAY_MAIN_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_MAIN_HTTPS_PORT/$GATEWAY_MAIN_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_API_HTTP_PORT/$GATEWAY_API_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_API_HTTPS_PORT/$GATEWAY_API_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_KONG_GATEWAY_HTTP_PORT/$GATEWAY_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_KONG_GATEWAY_HTTPS_PORT/$GATEWAY_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    - sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_PORT/$POSTGRE_KONG_GATEWAY_PORT/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_HOST/$POSTGRE_KONG_GATEWAY_HOST/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_USERNAME/$POSTGRE_KONG_GATEWAY_USERNAME/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_PASSWORD/$POSTGRE_KONG_GATEWAY_PASSWORD/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    - sed -i "s/INSERT_IMAGE_TAG/latest/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+    # # Replacing docker compose placeholders
+    # ## Build Section
+    # - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    # - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
+    # - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
+    # - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    # - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
+    # - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
+    # ## Environment Section
+    # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+
+    # # Building docker image
+    # - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
+
+  post_build:
+    commands:
+    - echo "Starting PostBuild Phase . . ."
+    # Pushing docker image to ECR
+    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
+    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
+    # - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
+    # - docker push $ECR_APP_REPO_URL:latest
+
+artifacts:
+  files:
+  - 'deploy_config/dev/scripts/gateway_application_start_hook.sh'
+  - appspec.yml
