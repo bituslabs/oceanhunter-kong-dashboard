@@ -44,9 +44,9 @@ phases:
     - CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/gateway_application_start_hook.sh"
 
     # Getting commit number for docker image
-    # - echo "Getting Github Commit"
-    # - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-    # - IMAGE_TAG=${COMMIT_HASH:=latest}
+    - echo "Getting Github Commit"
+    - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+    - IMAGE_TAG=${COMMIT_HASH:=latest}
 
     # Move appspec file over to root dir
     - mv $CODEDEPLOY_APPSPEC_FILE_PATH ./appspec.yml && CODEDEPLOY_APPSPEC_FILE_PATH="appspec.yml"
