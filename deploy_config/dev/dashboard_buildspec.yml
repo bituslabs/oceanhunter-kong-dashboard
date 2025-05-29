@@ -6,6 +6,12 @@ env:
     # KONG_GATEWAY_INTERNAL_ENDPOINT: "agfish-dev-pipeline-secrets:KONG_GATEWAY_INTERNAL_ENDPOINT"
     KONG_DASHBOARD_ENDPOINT: "agfish-dev-pipeline-secrets:KONG_DASHBOARD_ENDPOINT"
 
+    SLACK_CHANNEL_ID: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_NOTIFICATION_CHANNEL_ID'
+    SLACK_BOT_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_BOT_TOKEN'
+    GITHUB_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:GITHUB_TOKEN'
+    DOCKER_HUB_USERNAME: '${PIPELINE_SECRETS_MANAGER_NAME}:DOCKER_HUB_USERNAME'
+    DOCKER_HUB_PASSWORD: '${PIPELINE_SECRETS_MANAGER_NAME}:DOCKER_HUB_PASSWORD'
+
 phases:
   install:
     commands:
@@ -16,6 +22,8 @@ phases:
     - echo "Starting PreBuild Phase . . ."
 
     # Log into docker
+    - echo "Logging into Docker"
+    - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
     - echo "Logging into ECR"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 

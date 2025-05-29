@@ -17,8 +17,10 @@ phases:
     - echo "Starting PreBuild Phase . . ."
 
     # Log into docker
-    # - echo "Logging into ECR"
-    # - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+    - echo "Logging into Docker"
+    - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+    - echo "Logging into ECR"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
     # Setting base variables
     - SERVICE_NAME="common-kong-gateway"
@@ -74,28 +76,29 @@ phases:
 
     - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
     - sed -i "s/INSERT_IMAGE_TAG/latest/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-    # # Replacing docker compose placeholders
-    # ## Build Section
-    # - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
-    # - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
-    # ## Environment Section
-    # - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
 
-    # # Building docker image
-    # - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
+    # Replacing docker compose placeholders
+    ## Build Section
+    - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_IMAGE_TAG/latest/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_CONTANER_NAME/$SERVICE_NAME/" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s|INSERT_DOCKERFILE_PATH|$DOCKERFILE_PATH|" $DOCKERCOMPOSE_FILE_PATH
+    - sed -i "s/INSERT_SERVER_PORT/$SERVER_PORT/g" $DOCKERCOMPOSE_FILE_PATH
+    ## Environment Section
+    - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
+
+    # Building docker image
+    - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
   post_build:
     commands:
     - echo "Starting PostBuild Phase . . ."
     # Pushing docker image to ECR
-    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
-    # - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
-    # - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
-    # - docker push $ECR_APP_REPO_URL:latest
+    - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
+    - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:latest
+    - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
+    - docker push $ECR_APP_REPO_URL:latest
 
 artifacts:
   files:
