@@ -63,7 +63,7 @@ phases:
     - sed -i "s/INSERT_AWS_REGION/$AWS_REGION/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
     - sed -i "s|INSERT_ECR_REPO_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
 
-    # Replacing docker placeholders
+    # Replacing application start script placeholders
     - sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
 
     - sed -i "s/INSERT_MAIN_HTTP_PORT/$GATEWAY_MAIN_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
@@ -82,6 +82,13 @@ phases:
 
     - sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
     - sed -i "s/INSERT_IMAGE_TAG/latest/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
+
+    # Replacing docker placeholders
+    - echo "Getting Ready to Build Docker Image"
+    # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
 
     # Replacing docker compose placeholders
     ## Build Section
