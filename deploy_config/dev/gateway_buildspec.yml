@@ -38,7 +38,7 @@ phases:
     # Setting path variables
     - CONFIG_FILE_PATH="src/config.ts"
 
-    - DOCKERFILE_PATH="Dockerfile"
+    - DOCKERFILE_PATH="GatewayDockerfile"
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
     - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/dev/gateway_appspec.yml"
     - CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/gateway_application_start_hook.sh"
