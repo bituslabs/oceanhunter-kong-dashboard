@@ -115,6 +115,6 @@ phases:
 
 artifacts:
   files:
-  - 'deploy_config/**'
+  - 'deploy_config/dev/scripts/gateway_application_start_hook.sh'
   - appspec.yml
   - GatewayDockerfile
