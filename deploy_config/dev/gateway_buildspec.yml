@@ -115,6 +115,6 @@ phases:
 
 artifacts:
   files:
-  - deploy_config
+  - 'deploy_config/**'
   - appspec.yml
   - GatewayDockerfile
