@@ -176,7 +176,7 @@ phases:
     # Setting artifact files
     - mkdir artifacts
     - |
-      if [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "uat" ]; then
+      if [ "$ENVIRONMENT" = "dev" ] ; then
         mv * artifacts; cp -r artifacts/* .
       else
         cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
