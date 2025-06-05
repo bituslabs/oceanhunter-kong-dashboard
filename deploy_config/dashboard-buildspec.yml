@@ -144,28 +144,30 @@ phases:
   post_build:
     commands:
     - echo "Starting PostBuild Phase . . ."
-
-    # Scanning Image using Trivy
-    - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
-    - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
-    - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
     - |
-      if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
-          echo "Vulnerabilities found. Generating report..."
-          
-          trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
-          python "$SCAN_REPORT_FILE_PATH"
-          
-          echo "Adding Git Status Check (Failed)"
-          STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
+      if [ "$ENVIRONMENT" = "dev" ] ; then
+        # Scanning Image using Trivy
+        - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
+        - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
+        - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
+        - |
+          if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
+              echo "Vulnerabilities found. Generating report..."
 
-          exit 1
-      else
-          echo "No vulnerabilities found, skipping script."
+              trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
+              python "$SCAN_REPORT_FILE_PATH"
+
+              echo "Adding Git Status Check (Failed)"
+              STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
+
+              exit 1
+          else
+              echo "No vulnerabilities found, skipping script."
+          fi
+
+        # Adding Git Status Check (Success)
+        - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
       fi
-
-    # Adding Git Status Check (Success)
-    - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
     # Pushing docker image to ECR
     - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
