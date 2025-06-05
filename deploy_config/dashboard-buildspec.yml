@@ -50,7 +50,7 @@ phases:
       if [ "$ENVIRONMENT" = "staging" ]; then
         TASK_DEFINITION_REVISION_NUMBER="43"
       elif [ "$ENVIRONMENT" = "uat" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="1"
+        TASK_DEFINITION_REVISION_NUMBER="3"
       elif [ "$ENVIRONMENT" = "production" ]; then
         TASK_DEFINITION_REVISION_NUMBER="20"
       fi
