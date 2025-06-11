@@ -48,7 +48,7 @@ phases:
     - SERVICE_NAME="oceanhunter-kong-dashboard"
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="29"
+        TASK_DEFINITION_REVISION_NUMBER="1" # 0.5vCPU, 2GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="1"
       elif [ "$ENVIRONMENT" = "production" ]; then
