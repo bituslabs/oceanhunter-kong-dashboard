@@ -2,8 +2,7 @@ version: 0.2
 
 env:
   secrets-manager:
-    # KONG_GATEWAY_API_SECRET_KEY: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_GATEWAY_API_SECRET_KEY"
-
+    # Pipeline Secrets
     SLACK_CHANNEL_ID: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_NOTIFICATION_CHANNEL_ID'
     SLACK_BOT_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_BOT_TOKEN'
     GITHUB_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:GITHUB_TOKEN'
@@ -94,6 +93,7 @@ phases:
 
     # Replacing credentials
     # - sed -i "s|INSERT_SECRET_KEY|$KONG_GATEWAY_API_SECRET_KEY|" $AUTH_SIGN_HANDLER_LUA_FILE_PATH # Setting CodeDeploy and AppSpec config depending on the environment
+
     - |
       if [ "$ENVIRONMENT" = "dev" ]; then
           # Inserting codedeploy config settings
