@@ -74,6 +74,7 @@ phases:
       if [ "$ENVIRONMENT" = "dev" ]; then
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
           CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/dashboard_application_start_hook.sh"
+          sed -i "s|deploy_config/dev/scripts/application_start_hook.sh|deploy_config/dev/scripts/dashboard_application_start_hook.sh|" $CODEDEPLOY_APPSPEC_FILE_PATH
       else
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
       fi
