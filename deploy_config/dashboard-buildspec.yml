@@ -2,10 +2,11 @@ version: 0.2
 
 env:
   secrets-manager:
-    # KONG_GATEWAY_INTERNAL_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_GATEWAY_INTERNAL_ENDPOINT"
-    KONG_API_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_API_ENDPOINT"
-    KONG_DASHBOARD_ENDPOINT: "${PIPELINE_SECRETS_MANAGER_NAME}:KONG_DASHBOARD_ENDPOINT"
+    # Common App Secrets
+    KONG_API_ENDPOINT: "${COMMON_APP_SECRETS_MANAGER_NAME}:KONG_API_ENDPOINT"
+    KONG_DASHBOARD_ENDPOINT: "${COMMON_APP_SECRETS_MANAGER_NAME}:KONG_DASHBOARD_ENDPOINT"
 
+    # Pipeline Secrets
     SLACK_CHANNEL_ID: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_NOTIFICATION_CHANNEL_ID'
     SLACK_BOT_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:SLACK_BOT_TOKEN'
     GITHUB_TOKEN: '${PIPELINE_SECRETS_MANAGER_NAME}:GITHUB_TOKEN'
@@ -48,7 +49,7 @@ phases:
     - SERVICE_NAME="oceanhunter-kong-dashboard"
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
-          TASK_DEFINITION_REVISION_NUMBER="3" # 0.5vCPU, 2GB
+        TASK_DEFINITION_REVISION_NUMBER="3" # 0.5vCPU, 2GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="1"
       elif [ "$ENVIRONMENT" = "production" ]; then
@@ -72,7 +73,7 @@ phases:
     - |
       if [ "$ENVIRONMENT" = "dev" ]; then
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-          CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/application_start_hook.sh"
+          CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/dashboard_application_start_hook.sh"
       else
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
       fi
