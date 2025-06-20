@@ -70,7 +70,7 @@ phases:
     - |
       if [ "$ENVIRONMENT" = "dev" ]; then
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-          CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/application_start_hook.sh"
+          CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/gateway_application_start_hook.sh"
       else
           CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
       fi
