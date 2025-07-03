@@ -1,11 +1,11 @@
 # Create docker network if not exist
 echo "Creating docker network"
-docker network create oceanhunter-network || true
+docker network create agfish-network || true
 
 # Removing old container
 echo "Removing old container"
-docker stop oceanhunter-kong-gateway
-docker rm oceanhunter-kong-gateway
+docker stop common-kong-gateway
+docker rm common-kong-gateway
 docker rmi INSERT_ECR_REPO_NAME:latest
 
 # Pulling ECR image
@@ -33,4 +33,4 @@ docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-ga
     -e KONG_PG_PASSWORD=INSERT_POSTGRE_KONG_GATEWAY_PASSWORD \
     INSERT_IMAGE_NAME:INSERT_IMAGE_TAG
     # kong migrations bootstrap
-docker network connect oceanhunter-network oceanhunter-kong-gateway
+docker network connect agfish-network common-kong-gateway
