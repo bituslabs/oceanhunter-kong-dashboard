@@ -165,9 +165,10 @@ phases:
     #       echo "No vulnerabilities found, skipping script."
     #   fi
 
-        # Adding Git Status Check (Success)
-        - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
-      fi
+    # Adding Git Status Check (Success)
+    #   - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
+    # fi
+    - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
     # Pushing docker image to ECR
     - docker tag $ECR_APP_REPO_URL:latest $ECR_APP_REPO_URL:$IMAGE_TAG
