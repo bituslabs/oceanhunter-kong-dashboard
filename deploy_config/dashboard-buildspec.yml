@@ -72,11 +72,11 @@ phases:
     - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
     - |
       if [ "$ENVIRONMENT" = "dev" ]; then
-          CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-          CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/dashboard_application_start_hook.sh"
-          sed -i "s|deploy_config/dev/scripts/application_start_hook.sh|deploy_config/dev/scripts/dashboard_application_start_hook.sh|" $CODEDEPLOY_APPSPEC_FILE_PATH
+        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
+        CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/dashboard_application_start_hook.sh"
+        sed -i "s|deploy_config/dev/scripts/application_start_hook.sh|deploy_config/dev/scripts/dashboard_application_start_hook.sh|" $CODEDEPLOY_APPSPEC_FILE_PATH
       else
-          CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
+        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
       fi
 
     # Getting commit number for docker image
@@ -148,23 +148,26 @@ phases:
     - echo "Starting PostBuild Phase . . ."
 
     # Scanning Image using Trivy
-    # - trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
-    # - DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
-    # - DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
-    # - |
-    #   if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
-    #       echo "Vulnerabilities found. Generating report..."
+    - |
+      if [ "$ENVIRONMENT" = "dev" ] ; then
+        trivy image --scanners vuln,misconfig -f json $ECR_APP_REPO_URL:latest -o scan_report.json
+        DOCKERFILE_VULNS=$(jq '.Results[] | select(.Type == "dockerfile") | .MisconfSummary.Failures // 0' scan_report.json)
+        DEPENDENCY_VULNS=$(jq '[.Results[].Vulnerabilities | length] | add // 0' scan_report.json)
+        
+        if [ "$DOCKERFILE_VULNS" -gt 0 ] || [ "$DEPENDENCY_VULNS" -gt 0 ]; then
+          echo "Vulnerabilities found. Generating report..."
 
-    #       trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
-    #       python "$SCAN_REPORT_FILE_PATH"
+          trivy image --scanners vuln,misconfig --quiet $ECR_APP_REPO_URL:latest -o scan_report.txt --table-mode detailed
+          python "$SCAN_REPORT_FILE_PATH"
 
-    #       echo "Adding Git Status Check (Failed)"
-    #       STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
+          echo "Adding Git Status Check (Failed)"
+          STATUS=failure python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
-    #       exit 1
-    #   else
-    #       echo "No vulnerabilities found, skipping script."
-    #   fi
+          # exit 1
+        else
+          echo "No vulnerabilities found, skipping script."
+        fi
+      fi
 
     # Adding Git Status Check (Success)
     - STATUS=success python "$GITHUB_STATUS_CHECK_FILE_PATH"
@@ -178,7 +181,7 @@ phases:
     # Setting artifact files
     - mkdir artifacts
     - |
-      if [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "uat" ]; then
+      if [ "$ENVIRONMENT" = "dev" ] ; then
         mv * artifacts; cp -r artifacts/* .
       else
         cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
