@@ -51,7 +51,7 @@ phases:
       if [ "$ENVIRONMENT" = "staging" ]; then
         TASK_DEFINITION_REVISION_NUMBER="8" # 0.5vCPU, 2GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="1"
+        TASK_DEFINITION_REVISION_NUMBER="6"
       elif [ "$ENVIRONMENT" = "production" ]; then
         TASK_DEFINITION_REVISION_NUMBER="20"
       fi
