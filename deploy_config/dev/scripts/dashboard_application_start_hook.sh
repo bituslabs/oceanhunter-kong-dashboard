@@ -4,8 +4,8 @@ docker network create agfish-network || true
 
 # Removing old container
 echo "Removing old container"
-docker stop common-kong-dashboard
-docker rm common-kong-dashboard
+docker stop oceanhunter-kong-dashboard
+docker rm oceanhunter-kong-dashboard
 docker rmi INSERT_ECR_REPO_NAME:latest
 
 # Pulling ECR image
@@ -16,4 +16,4 @@ docker pull INSERT_ECR_REPO_NAME:latest
 # Building container
 echo "Building docker container"
 cd INSERT_SOURCE_FILE_DESTINATION && docker compose -f docker-compose.yml up -d
-docker network connect agfish-network common-kong-dashboard
+docker network connect agfish-network oceanhunter-kong-dashboard
