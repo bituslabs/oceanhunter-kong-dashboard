@@ -31,7 +31,7 @@ phases:
     - SERVICE_NAME="kong-admin-api-nginx"
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="4" # 0.5vCPU, 2GB
+        TASK_DEFINITION_REVISION_NUMBER="6" # 0.5vCPU, 2GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="10"
       elif [ "$ENVIRONMENT" = "production" ]; then
