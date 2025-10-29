@@ -16,7 +16,7 @@ docker pull INSERT_ECR_REPO_NAME:latest
 # Building container
 echo "Building docker container"
 # cd INSERT_SOURCE_FILE_DESTINATION && docker compose -f docker-compose.yml up -d
-docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-gateway \
+docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-gateway  --ulimit nofile=32768:65536 \
     -p INSERT_MAIN_HTTP_PORT:INSERT_MAIN_HTTP_PORT -p INSERT_MAIN_HTTPS_PORT:INSERT_MAIN_HTTPS_PORT -p INSERT_API_HTTP_PORT:INSERT_API_HTTP_PORT \
     -p INSERT_API_HTTPS_PORT:INSERT_API_HTTPS_PORT -p INSERT_KONG_GATEWAY_HTTP_PORT:INSERT_KONG_GATEWAY_HTTP_PORT -p INSERT_KONG_GATEWAY_HTTPS_PORT:INSERT_KONG_GATEWAY_HTTPS_PORT \
     -e KONG_DATABASE=postgres \
