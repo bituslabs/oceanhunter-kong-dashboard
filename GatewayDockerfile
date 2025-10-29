@@ -1,6 +1,7 @@
 FROM INSERT_BASE_IMAGE
 
 RUN mkdir -p /usr/local/share/lua/5.1/kong/plugins/auth_sign
+RUN ulimit -n 65536
 
 ## Copy Plugin files
 # COPY plugins/auth-sign/handler.lua /usr/local/share/lua/5.1/kong/plugins/auth_sign/handler.lua
