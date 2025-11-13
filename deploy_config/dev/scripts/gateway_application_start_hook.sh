@@ -34,5 +34,5 @@ docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-ga
     -e KONG_PLUGINS="bundled,auth_sign" \
     -e KONG_PLUGINS_DIR="/usr/local/share/lua/5.1/kong/plugins" \
     INSERT_IMAGE_NAME:INSERT_IMAGE_TAG
-    # kong migrations bootstrap
+    kong migrations bootstrap
 docker network connect agfish-network oceanhunter-kong-gateway
