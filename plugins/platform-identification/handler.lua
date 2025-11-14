@@ -86,7 +86,7 @@ function PlatformIdentification:access(conf)
     kong.service.request.set_header("X-Platform", platform_value)
 
     -- 打印日志
-    ngx.log(ngx.ERR, string.format(
+    ngx.log(ngx.WARN, string.format(
         "PlatformIdentification plugin reached, platform=%s, platform_value=%s, score=%.3f",
         platform, platform_value, score
     ))
