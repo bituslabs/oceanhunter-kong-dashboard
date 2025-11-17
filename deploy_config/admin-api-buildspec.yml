@@ -35,7 +35,7 @@ phases:
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="10"
       elif [ "$ENVIRONMENT" = "production" ]; then
-        TASK_DEFINITION_REVISION_NUMBER="4"
+        TASK_DEFINITION_REVISION_NUMBER="1"
       fi
 
     # Setting endpoint variables
