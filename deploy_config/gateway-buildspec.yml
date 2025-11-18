@@ -54,7 +54,7 @@ phases:
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
         # TASK_DEFINITION_REVISION_NUMBER="3" # 0.5vCPU, 2GB
-        TASK_DEFINITION_REVISION_NUMBER="13" # 2vCPU, 4GB
+        TASK_DEFINITION_REVISION_NUMBER="17" # 2vCPU, 4GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="5"
       elif [ "$ENVIRONMENT" = "production" ]; then
@@ -148,7 +148,7 @@ phases:
     # Replacing docker placeholders
     - echo "Getting Ready to Build Docker Image"
     # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
-    - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:latest|g" $DOCKERFILE_PATH
+    - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:3.9.0|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
 
@@ -164,6 +164,7 @@ phases:
     - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
 
     # Building docker image
+    - docker pull $ECR_APP_REPO_URL:latest
     - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
   post_build:
