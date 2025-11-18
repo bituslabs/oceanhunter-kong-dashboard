@@ -53,8 +53,8 @@ phases:
     - SERVICE_NAME="oceanhunter-kong-gateway"
     - |
       if [ "$ENVIRONMENT" = "staging" ]; then
-        # TASK_DEFINITION_REVISION_NUMBER="3" # 0.5vCPU, 2GB
-        TASK_DEFINITION_REVISION_NUMBER="17" # 2vCPU, 4GB
+        # TASK_DEFINITION_REVISION_NUMBER="17" # 2vCPU, 4GB
+        TASK_DEFINITION_REVISION_NUMBER="19" # 2vCPU, 4GB
       elif [ "$ENVIRONMENT" = "uat" ]; then
         TASK_DEFINITION_REVISION_NUMBER="5"
       elif [ "$ENVIRONMENT" = "production" ]; then
