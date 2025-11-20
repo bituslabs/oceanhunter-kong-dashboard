@@ -25,6 +25,7 @@ docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-ga
     -e KONG_ADMIN_GUI_LISTEN="0.0.0.0:INSERT_KONG_GATEWAY_HTTP_PORT, 0.0.0.0:INSERT_KONG_GATEWAY_HTTPS_PORT ssl" \
     -e KONG_ADMIN_GUI_URL="https://INSERT_KONG_DASHBOARD_ENDPOINT" \
     -e KONG_ADMIN_GUI_AUTH="basic-auth" \
+    -e KONG_PASSWORD=gafviS-4tugqi-mudnit \
     -e KONG_ENFORCE_RBAC=on \
     -e KONG_PG_HOST=INSERT_POSTGRE_KONG_GATEWAY_HOST \
     -e KONG_PG_USER=INSERT_POSTGRE_KONG_GATEWAY_USERNAME \
@@ -35,7 +36,4 @@ docker run -d --name INSERT_SERVICE_NAME --add-host host.docker.internal:host-ga
     -e KONG_PLUGINS_DIR="/usr/local/share/lua/5.1/kong/plugins" \
     INSERT_IMAGE_NAME:INSERT_IMAGE_TAG
     # INSERT_IMAGE_NAME:INSERT_IMAGE_TAG kong migrations bootstrap
-    
-    
-
 docker network connect agfish-network oceanhunter-kong-gateway
