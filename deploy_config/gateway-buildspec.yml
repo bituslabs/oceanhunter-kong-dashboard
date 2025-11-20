@@ -164,7 +164,7 @@ phases:
     - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|" $DOCKERCOMPOSE_FILE_PATH
 
     # Building docker image
-    - docker pull $ECR_APP_REPO_URL:latest
+    - docker pull $ECR_APP_REPO_URL:latest || true
     - docker compose -f $DOCKERCOMPOSE_FILE_PATH build
 
   post_build:
