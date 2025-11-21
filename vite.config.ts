@@ -41,7 +41,7 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/kconfig.js': process.env.KONG_GUI_URL || 'http://127.0.0.1:8002',
+      '/kconfig.js': process.env.KONG_GUI_URL || 'http://host.docker.internal:8301',
     },
     allowedHosts: ['INSERT_KONG_DASHBOARD_ENDPOINT'],
     port: 8080,
