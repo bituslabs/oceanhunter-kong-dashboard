@@ -42,7 +42,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/kconfig.js': {
-        target: process.env.KONG_GUI_URL || 'http://host.docker.internal:8301',
+        target: process.env.KONG_GUI_URL || 'http://host.docker.internal:8302',
         changeOrigin: true,
       },
     },
