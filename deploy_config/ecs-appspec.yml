@@ -3,7 +3,7 @@ Resources:
     - TargetService:
           Type: AWS::ECS::Service
           Properties:
-              TaskDefinition: 'INSERT_TASK_DEFINITION_ARN:INSERT_REVISION_NUMBER'
+              TaskDefinition: 'INSERT_TASK_DEFINITION_ARN'
               LoadBalancerInfo:
                   ContainerName: 'INSERT_CONTAINER_NAME'
                   ContainerPort: INSERT_CONTAINER_PORT
