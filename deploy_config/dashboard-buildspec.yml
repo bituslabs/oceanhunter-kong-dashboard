@@ -47,8 +47,8 @@ phases:
 
     # Setting base variables
     - SERVICE_NAME="oceanhunter-kong-dashboard"
-    - REPO_NAME="oceanhunter-kong-dashboard"
-    - ORGANIZATION_NAME="bituslabs"
+    - REPO_NAME="oceanhunter-kong-dashboard" # used in python scripts
+    - ORGANIZATION_NAME="bituslabs" # used in python scripts
     - CURRENT_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
     # Setting endpoint variables
@@ -62,14 +62,7 @@ phases:
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
     - SCAN_REPORT_FILE_PATH="deploy_config/generate_scan_report.py"
     - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-        CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/dashboard_application_start_hook.sh"
-        sed -i "s|deploy_config/dev/scripts/application_start_hook.sh|deploy_config/dev/scripts/dashboard_application_start_hook.sh|" $CODEDEPLOY_APPSPEC_FILE_PATH
-      else
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
-      fi
+    - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
 
     # Getting commit number for docker image
     - echo "Getting Github Commit"
@@ -91,28 +84,14 @@ phases:
     - sed -i "s|INSERT_KONG_API_ENDPOINT|$KONG_API_ENDPOINT|" $CONFIG_FILE_PATH
     - sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $VITE_CONFIG_FILE_PATH
 
-    # Setting CodeDeploy and AppSpec config depending on the environment
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        # Inserting codedeploy config settings
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPSPEC_FILE_PATH
-
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_REGION/$AWS_REGION/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s|INSERT_ECR_REPO_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-      else
-        # Get Current Task Definition
-        aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json
-
-        # Replacing appspec placeholders
-        sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
-      fi
+    # Get Current Task Definition
+    - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json # Replacing appspec placeholders
+    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
     # Replacing docker placeholders
     - echo "Getting Ready to Build Docker Image"
@@ -171,12 +150,7 @@ phases:
 
     # Setting artifact files
     - mkdir artifacts
-    - |
-      if [ "$ENVIRONMENT" = "dev" ] ; then
-        mv * artifacts; cp -r artifacts/* .
-      else
-        cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
-      fi
+    - cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
 
 artifacts:
   base-directory: artifacts/

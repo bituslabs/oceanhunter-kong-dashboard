@@ -51,8 +51,8 @@ phases:
 
     # Setting base variables
     - SERVICE_NAME="oceanhunter-kong-gateway"
-    - REPO_NAME="oceanhunter-kong-dashboard"
-    - ORGANIZATION_NAME="bituslabs"
+    - REPO_NAME="oceanhunter-kong-dashboard" # used in python scripts
+    - ORGANIZATION_NAME="bituslabs" # used in python scripts
     - CURRENT_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
     # Setting endpoint variables
@@ -66,14 +66,7 @@ phases:
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
     - SCAN_REPORT_FILE_PATH="deploy_config/generate_scan_report.py"
     - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-        CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/gateway_application_start_hook.sh"
-        sed -i "s|deploy_config/dev/scripts/application_start_hook.sh|deploy_config/dev/scripts/gateway_application_start_hook.sh|" $CODEDEPLOY_APPSPEC_FILE_PATH
-      else
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
-      fi
+    - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
 
     # Getting commit number for docker image
     - echo "Getting Github Commit"
@@ -91,53 +84,17 @@ phases:
     commands:
     - echo "Starting Build Phase . . ."
 
-    # Replacing credentials
-    # - sed -i "s|INSERT_SECRET_KEY|$KONG_GATEWAY_API_SECRET_KEY|" $AUTH_SIGN_HANDLER_LUA_FILE_PATH # Setting CodeDeploy and AppSpec config depending on the environment
+    # Get Current Task Definition
+    - aws ecs describe-task-definition --task-definition $GATEWAY_TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json # Replacing appspec placeholders
+    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$GATEWAY_TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        # Inserting codedeploy config settings
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPSPEC_FILE_PATH
-
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_REGION/$AWS_REGION/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s|INSERT_ECR_REPO_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-
-        # Replacing application start script placeholders
-        sed -i "s/INSERT_SERVICE_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-
-        sed -i "s/INSERT_MAIN_HTTP_PORT/$GATEWAY_MAIN_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_MAIN_HTTPS_PORT/$GATEWAY_MAIN_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_API_HTTP_PORT/$GATEWAY_API_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_API_HTTPS_PORT/$GATEWAY_API_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_KONG_GATEWAY_HTTP_PORT/$GATEWAY_HTTP_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_KONG_GATEWAY_HTTPS_PORT/$GATEWAY_HTTPS_PORT/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-
-        sed -i "s|INSERT_KONG_DASHBOARD_ENDPOINT|$KONG_DASHBOARD_ENDPOINT|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-
-        sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_PORT/$POSTGRE_KONG_GATEWAY_PORT/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_HOST/$POSTGRE_KONG_GATEWAY_HOST/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_USERNAME/$POSTGRE_KONG_GATEWAY_USERNAME/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_POSTGRE_KONG_GATEWAY_PASSWORD/$POSTGRE_KONG_GATEWAY_PASSWORD/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-
-        sed -i "s|INSERT_IMAGE_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_IMAGE_TAG/latest/" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-      else
-        # Get Current Task Definition
-        aws ecs describe-task-definition --task-definition $GATEWAY_TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json
-
-        # Replacing appspec placeholders
-        sed -i "s|INSERT_TASK_DEFINITION_ARN|$GATEWAY_TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
-      fi
     # Replacing docker placeholders
     - echo "Getting Ready to Build Docker Image"
-    # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_BASE_IMAGE|$ECR_APP_REPO_URL:3.9.0|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
@@ -194,12 +151,7 @@ phases:
 
     # Setting artifact files
     - mkdir artifacts
-    - |
-      if [ "$ENVIRONMENT" = "dev" ] ; then
-        mv * artifacts; cp -r artifacts/* .
-      else
-        cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
-      fi
+    - cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
 
 artifacts:
   base-directory: artifacts/
