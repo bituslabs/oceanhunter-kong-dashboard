@@ -4,6 +4,7 @@ env:
   secrets-manager:
     # Common App Secrets
     KONG_API_INTERNAL_ENDPOINT: "${COMMON_APP_SECRETS_MANAGER_NAME}:KONG_API_INTERNAL_ENDPOINT"
+    KONG_API_INTERNAL_ENDPOINT_NEW: "${COMMON_APP_SECRETS_MANAGER_NAME}:KONG_API_INTERNAL_ENDPOINT_NEW"
 
     # Pipeline Secrets
     DOCKER_HUB_USERNAME: '${PIPELINE_SECRETS_MANAGER_NAME}:DOCKER_HUB_USERNAME'
@@ -54,7 +55,14 @@ phases:
     - echo "Starting Build Phase . . ."
 
     # Replacing credentials
-    - sed -i "s|INSERT_ADMIN_API_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+    ## Remove this condition once dev is fully migrated to ECS
+    - |
+      if [ "$ENVIRONMENT" = "dev" ] ; then
+        sed -i "s|INSERT_ADMIN_API_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT_NEW|" $CONFIG_FILE_PATH
+      else
+        sed -i "s|INSERT_ADMIN_API_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
+      fi
+    # - sed -i "s|INSERT_ADMIN_API_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
 
     # Setting CodeDeploy and AppSpec config depending on the environment
     # Get Current Task Definition
