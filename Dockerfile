@@ -31,11 +31,12 @@ WORKDIR /app
 
 ENV APP_ENV=INSERT_ENVIRONMENT
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 LABEL release-date="INSERT_RELEASE_DATE"
 
 RUN addgroup --system --gid 1001 app_group && \
-    adduser --system --uid 1001 app_user
+  adduser --system --uid 1001 app_user
 
 COPY --from=builder --chown=app_user:app_group /app /app
 
