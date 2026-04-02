@@ -85,8 +85,8 @@ phases:
     - echo "Starting Build Phase . . ."
 
     # Get Current Task Definition
-    - aws ecs describe-task-definition --task-definition $GATEWAY_TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json # Replacing appspec placeholders
-    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$GATEWAY_TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json # Replacing appspec placeholders
+    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
     - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
     - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
     - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
