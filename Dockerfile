@@ -9,7 +9,7 @@ COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && corepack use pnpm@latest-10 && pnpm i; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && corepack use pnpm@9.9.0 && pnpm i; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -21,7 +21,7 @@ COPY . .
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack use pnpm@latest-10 && pnpm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack use pnpm@9.9.0 && pnpm run build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -36,7 +36,7 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 LABEL release-date="INSERT_RELEASE_DATE"
 
 RUN addgroup --system --gid 1001 app_group && \
-    adduser --system --uid 1001 app_user
+  adduser --system --uid 1001 app_user
 
 COPY --from=builder --chown=app_user:app_group /app /app
 
