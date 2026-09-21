@@ -38,13 +38,7 @@ phases:
 
     - DOCKERFILE_PATH="AdminAPIDockerfile"
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ec2-appspec.yml"
-        CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH="deploy_config/dev/scripts/application_start_hook.sh"
-      else
-        CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
-      fi
+    - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
 
     # Getting commit number for docker image
     - echo "Getting Github Commit"
@@ -62,32 +56,19 @@ phases:
     # Replacing credentials
     - sed -i "s|INSERT_ADMIN_API_INTERNAL_ENDPOINT|$KONG_API_INTERNAL_ENDPOINT|" $CONFIG_FILE_PATH
 
-    # Setting CodeDeploy and AppSpec config depending on the environment
-    - |
-      if [ "$ENVIRONMENT" = "dev" ]; then
-        # Inserting codedeploy config settings
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPSPEC_FILE_PATH
+    # Get Current Task Definition
+    - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json
 
-        sed -i "s|INSERT_SOURCE_FILE_DESTINATION|$CODEDEPLOY_SOURCE_FILE_DESTINATION|" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s/INSERT_AWS_REGION/$AWS_REGION/g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-        sed -i "s|INSERT_ECR_REPO_NAME|$ECR_APP_REPO_URL|g" $CODEDEPLOY_APPLICATION_START_HOOK_FILE_PATH
-      else
-        # Get Current Task Definition
-        aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json
-
-        # Replacing appspec placeholders
-        sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
-        sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
-      fi
+    # Replacing appspec placeholders
+    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
+    - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
     # Replacing docker placeholders
     - echo "Getting Ready to Build Docker Image"
-    # - sed -i "s|INSERT_BASE_IMAGE|$ECR_BASE_IMAGE_REPO_URL:$ECR_BASE_IMAGE_REPO_TAG|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_ENVIRONMENT|$ENVIRONMENT|g" $DOCKERFILE_PATH
     - sed -i "s|INSERT_RELEASE_DATE|$CURRENT_TIMESTAMP|" $DOCKERFILE_PATH
 
@@ -117,12 +98,7 @@ phases:
 
     # Setting artifact files
     - mkdir artifacts
-    - |
-      if [ "$ENVIRONMENT" = "dev" ] ; then
-        mv * artifacts; cp -r artifacts/* .
-      else
-        cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
-      fi
+    - cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
 
 artifacts:
   base-directory: artifacts/
