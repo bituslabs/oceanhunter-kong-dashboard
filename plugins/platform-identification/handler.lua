@@ -23,7 +23,8 @@ local platforms = {
 local platform_map = {
     PA1 = "1",
     PA2 = "1",
-    CP  = "2"
+    CP  = "2",
+    BEE = "3"
 }
 
 -- 计算 table 长度
