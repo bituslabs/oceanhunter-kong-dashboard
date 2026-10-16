@@ -66,7 +66,6 @@ phases:
     - DOCKERCOMPOSE_FILE_PATH="docker-compose.yml"
     - SCAN_REPORT_FILE_PATH="deploy_config/generate_scan_report.py"
     - GITHUB_STATUS_CHECK_FILE_PATH="deploy_config/git_status_check.py"
-    - CODEDEPLOY_APPSPEC_FILE_PATH="deploy_config/ecs-appspec.yml"
 
     # Getting commit number for docker image
     - echo "Getting Github Commit"
@@ -76,24 +75,10 @@ phases:
     # Adding Status Check (Pending)
     - STATUS=pending python "$GITHUB_STATUS_CHECK_FILE_PATH"
 
-    # Move appspec file over to root dir
-    - mv $CODEDEPLOY_APPSPEC_FILE_PATH ./appspec.yml && CODEDEPLOY_APPSPEC_FILE_PATH="appspec.yml"
-
   build:
     on-failure: ABORT
     commands:
     - echo "Starting Build Phase . . ."
-
-    # Get Current Task Definition
-    - aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq '.taskDefinition' > taskdef.json
-
-    # Replacing appspec placeholders
-    - sed -i "s|INSERT_TASK_DEFINITION_ARN|$TASK_DEFINITION_ARN|" $CODEDEPLOY_APPSPEC_FILE_PATH
-    - sed -i "s/INSERT_CONTAINER_NAME/$SERVICE_NAME/" $CODEDEPLOY_APPSPEC_FILE_PATH
-    - sed -i "s/INSERT_CONTAINER_PORT/$SERVER_PORT/" $CODEDEPLOY_APPSPEC_FILE_PATH
-    - sed -i "s/INSERT_SUBNETS/$SUBNET/" $CODEDEPLOY_APPSPEC_FILE_PATH
-    - sed -i "s/INSERT_SECURITY_GROUP/$SECURITY_GROUP/" $CODEDEPLOY_APPSPEC_FILE_PATH
-    - sed -i "s/INSERT_CAPACITY_PROVIDER_NAME/$CAPACITY_PROVIDER/" $CODEDEPLOY_APPSPEC_FILE_PATH
 
     # Replacing docker placeholders
     - echo "Getting Ready to Build Docker Image"
@@ -153,7 +138,7 @@ phases:
 
     # Setting artifact files
     - mkdir artifacts
-    - cp $CODEDEPLOY_APPSPEC_FILE_PATH taskdef.json artifacts/
+    - printf '[{"name":"%s","imageUri":"%s"}]' "$SERVICE_NAME" "$ECR_APP_REPO_URL:$IMAGE_TAG" > artifacts/imagedefinitions.json
 
 artifacts:
   base-directory: artifacts/
