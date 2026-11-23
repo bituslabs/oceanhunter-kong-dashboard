@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   secrets-manager:
-    # Common App Secrets
+    # Common App Secrets 
     KONG_DASHBOARD_ENDPOINT: "${COMMON_APP_SECRETS_MANAGER_NAME}:KONG_DASHBOARD_ENDPOINT"
 
     # App Secrets
