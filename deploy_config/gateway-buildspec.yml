@@ -149,6 +149,11 @@ phases:
           --cluster "$ECS_CLUSTER_NAME" \
           --service "$ECS_SERVICE_NAME" \
           --task-definition "$TASK_DEFINITION_ARN"
+
+        echo "Waiting for service $ECS_SERVICE_NAME to reach a stable state..."
+        aws ecs wait services-stable \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --services "$ECS_SERVICE_NAME"
       else
         echo "Skipping service alignment (TASK_DEFINITION_ARN / ECS_CLUSTER_NAME / ECS_SERVICE_NAME not set)"
       fi
