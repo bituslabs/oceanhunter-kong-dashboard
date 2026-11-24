@@ -136,6 +136,28 @@ phases:
     - docker push $ECR_APP_REPO_URL:$IMAGE_TAG
     - docker push $ECR_APP_REPO_URL:latest
 
+    # New ECS native deployment controller does not use the task definition changes made in aws-services. Instead, it will 
+    # create a new task definition revision based on the currently deployed task definition. In order to deploy with the new
+    # task definition, revision number in ECS service must be manually updated. The following make sure ecs service is using
+    # the same as TASK_DEFINITION_ARN provided in the pipeline variables. The downside of this approach is that there will be
+    # two deployments; one in codebuild stage and one in codedeploy stage. Currently, AWS does not support adding custom 
+    # task definition number to ECS native deployment contoller.
+    - |
+      if [ -n "$TASK_DEFINITION_ARN" ] && [ -n "$ECS_CLUSTER_NAME" ] && [ -n "$ECS_SERVICE_NAME" ]; then
+        echo "Aligning service $ECS_SERVICE_NAME to task definition $TASK_DEFINITION_ARN"
+        aws ecs update-service \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --service "$ECS_SERVICE_NAME" \
+          --task-definition "$TASK_DEFINITION_ARN"
+
+        echo "Waiting for service $ECS_SERVICE_NAME to reach a stable state..."
+        aws ecs wait services-stable \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --services "$ECS_SERVICE_NAME"
+      else
+        echo "Skipping service alignment (TASK_DEFINITION_ARN / ECS_CLUSTER_NAME / ECS_SERVICE_NAME not set)"
+      fi
+
     # Setting artifact files
     - mkdir artifacts
     - printf '[{"name":"%s","imageUri":"%s"}]' "$SERVICE_NAME" "$ECR_APP_REPO_URL:$IMAGE_TAG" > artifacts/imagedefinitions.json
